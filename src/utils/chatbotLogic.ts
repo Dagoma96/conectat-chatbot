@@ -377,7 +377,7 @@ return null;
     if (analysis.intent === 'location' || input.includes('dónde') || input.includes('ubicación') || input.includes('dirección')) {
       return {
         message: this.createBotMessage(
-          `📍 *NUESTRA UBICACIÓN*\n\n**ConectaT - Sede Principal**\n🏢 Calle 127 #15-45, Bogotá\n🏙️ Barrio: Usaquén\n\n*REFERENCIAS:*\n🚇 A 2 cuadras del TransMilenio Calle 127\n🏪 Frente al Centro Comercial Santafé\n🅿️ Parqueadero gratuito disponible\n\n*CÓMO LLEGAR:*\n🚌 TransMilenio: Estación Calle 127\n🚗 Por Autopista Norte: Salida Calle 127\n🚕 Uber/Taxi: "ConectaT Calle 127"\n\n*HORARIOS:*\n📅 Lunes a Viernes: 8:00 AM - 6:00 PM\n📅 Sábados: 9:00 AM - 2:00 PM\n\n📞 **Teléfono:** +57 300 123 4567\n\n¿Necesitas que te envíe la ubicación por Google Maps?`
+          `📍 *NUESTRA UBICACIÓN*\n\n**ConectaT - Sede Principal**\n🏢 Carrera 83D #53A-34, Cali\n🏙️ Barrio: Usaquén\n\n*REFERENCIAS:*\n🚇 A 2 cuadras del TransMilenio Calle 127\n🏪 Frente al Centro Comercial Santafé\n🅿️ Parqueadero gratuito disponible\n\n*CÓMO LLEGAR:*\n🚌 TransMilenio: Estación Calle 127\n🚗 Por Autopista Norte: Salida Calle 127\n🚕 Uber/Taxi: "ConectaT Calle 127"\n\n*HORARIOS:*\n📅 Lunes a Viernes: 8:00 AM - 5:00 PM\n📅 Sábados: 9:00 AM - 12:00 PM\n\n📞 **Teléfono:** +57 304 375 6405\n\n¿Necesitas que te envíe la ubicación por Google Maps?`
         ),
         newState: currentState
       };

@@ -137,16 +137,6 @@ const ChatSimulator: React.FC = () => {
           </button>
         </div>
       </div>
-
-      {/* Usage Instructions */}
-      <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h4 className="font-semibold text-blue-800 mb-2">💡 Cómo probar el chatbot:</h4>
-        <ul className="text-blue-700 text-sm space-y-1">
-          <li>• Escribe "Hola" para comenzar la conversación</li>
-          <li>• Usa las respuestas rápidas para navegar por los menús</li>
-          <li>• Prueba preguntas como "¿Cuánto cuesta reparar un celular?"</li>
-        </ul>
-      </div>
     </div>
   );
 };

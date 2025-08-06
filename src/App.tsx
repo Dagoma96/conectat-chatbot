@@ -1,17 +1,13 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import ChatSimulator from './components/ChatSimulator';
-import TechnicalGuide from './components/TechnicalGuide';
-import AdminDashboard from './components/AdminDashboard';
 import Header from './components/Header';
-import { MessageSquare, Settings, BookOpen } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'chat' | 'guide' | 'admin'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat'>('chat');
 
   const tabs = [
-    { id: 'chat', label: 'Demo del Chatbot', icon: MessageSquare },
-    { id: 'guide', label: 'Guía Técnica', icon: BookOpen },
-    { id: 'admin', label: 'Dashboard', icon: Settings }
+    { id: 'chat', label: 'Chat ConectaT', icon: MessageSquare }
   ];
 
   return (
@@ -40,8 +36,6 @@ function App() {
         {/* Content */}
         <div className="max-w-7xl mx-auto">
           {activeTab === 'chat' && <ChatSimulator />}
-          {activeTab === 'guide' && <TechnicalGuide />}
-          {activeTab === 'admin' && <AdminDashboard />}
         </div>
       </div>
     </div>

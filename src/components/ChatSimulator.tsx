@@ -19,7 +19,6 @@ const ChatSimulator: React.FC = () => {
   }, [messages]);
 
   useEffect(() => {
-    // Initial welcome message
     const welcomeMessage = chatbotLogic.getWelcomeMessage();
     setMessages([welcomeMessage]);
   }, []);
@@ -41,7 +40,6 @@ const ChatSimulator: React.FC = () => {
 
     setMessages(prev => [...prev, userMessage]);
     setInputText('');
-
     simulateTyping();
 
     setTimeout(() => {
@@ -64,10 +62,11 @@ const ChatSimulator: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-white rounded-lg shadow-xl overflow-hidden">
+    <div className="h-full w-full flex items-center justify-center">
+      <div className="w-full max-w-4xl bg-white rounded-lg shadow-xl flex flex-col h-[750px]">
+
         {/* Chat Header */}
-        <div className="bg-green-600 text-white p-4 flex items-center justify-between">
+        <div className="bg-green-600 text-white p-4 flex items-center justify-between sticky top-0 z-10">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
               <span className="text-green-600 font-bold text-sm">CT</span>
@@ -85,17 +84,17 @@ const ChatSimulator: React.FC = () => {
         </div>
 
         {/* Messages Area */}
-        <div className="h-96 overflow-y-auto bg-gray-50 p-4 space-y-3">
+        <div className="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-3">
           {messages.map(message => (
             <ChatMessage key={message.id} message={message} />
           ))}
-          
+
           {isTyping && (
-            <div className="flex items-center gap-2 text-gray-500 text-sm">
+            <div className="flex items-center gap-2 text-gray-500 text-sm animate-pulse">
               <div className="flex gap-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
               </div>
               ConectaT Bot está escribiendo...
             </div>
@@ -104,8 +103,8 @@ const ChatSimulator: React.FC = () => {
         </div>
 
         {/* Quick Replies */}
-        <div className="p-3 bg-gray-100 border-t">
-          <div className="flex flex-wrap gap-2 mb-3">
+        <div className="p-3 bg-gray-100 border-t overflow-x-auto">
+          <div className="flex flex-wrap gap-2">
             {chatbotLogic.getQuickReplies(chatState).map((reply, index) => (
               <button
                 key={index}
@@ -136,6 +135,7 @@ const ChatSimulator: React.FC = () => {
             <Send size={20} />
           </button>
         </div>
+
       </div>
     </div>
   );

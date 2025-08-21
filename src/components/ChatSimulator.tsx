@@ -63,7 +63,7 @@ const ChatSimulator: React.FC = () => {
 
   return (
     <div className="h-screen w-full flex items-center justify-center p-2">
-      <div className="w-[420px] h-[600px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+      <div className="w-[400px] h-[600px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden">
 
         {/* Chat Header */}
         <div className="bg-green-600 text-white p-4 flex items-center justify-between sticky top-0 z-10">

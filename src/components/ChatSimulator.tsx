@@ -19,8 +19,8 @@ const ChatSimulator: React.FC = () => {
   }, [messages]);
 
   useEffect(() => {
-    const welcomeMessage = chatbotLogic.getWelcomeMessage();
-    setMessages([welcomeMessage]);
+   // const welcomeMessage = chatbotLogic.getWelcomeMessage();
+   // setMessages([welcomeMessage]);
   }, []);
 
   const simulateTyping = (duration: number = 1500) => {

@@ -19,8 +19,8 @@ const ChatSimulator: React.FC = () => {
   }, [messages]);
 
   useEffect(() => {
-   // const welcomeMessage = chatbotLogic.getWelcomeMessage();
-   // setMessages([welcomeMessage]);
+    // const welcomeMessage = chatbotLogic.getWelcomeMessage();
+    // setMessages([welcomeMessage]);
   }, []);
 
   const simulateTyping = (duration: number = 1500) => {
@@ -30,18 +30,18 @@ const ChatSimulator: React.FC = () => {
 
   const handleSendMessage = () => {
     if (!inputText.trim()) return;
-
+    
     const userMessage: Message = {
       id: Date.now().toString(),
       text: inputText,
       sender: 'user',
       timestamp: new Date()
     };
-
+    
     setMessages(prev => [...prev, userMessage]);
     setInputText('');
     simulateTyping();
-
+    
     setTimeout(() => {
       const response = chatbotLogic.processMessage(inputText, chatState);
       setMessages(prev => [...prev, response.message]);
@@ -63,8 +63,10 @@ const ChatSimulator: React.FC = () => {
 
   return (
     <div className="h-full w-full flex items-center justify-center">
-      <div className="w-full max-w-4xl bg-white rounded-lg shadow-xl flex flex-col h-[750px]">
-
+      <div 
+        className="w-full max-w-4xl bg-white rounded-lg shadow-xl flex flex-col" 
+        style={{ maxHeight: '80vh' }} // Límite de altura para el contenedor principal
+      >
         {/* Chat Header */}
         <div className="bg-green-600 text-white p-4 flex items-center justify-between sticky top-0 z-10">
           <div className="flex items-center gap-3">
@@ -83,12 +85,15 @@ const ChatSimulator: React.FC = () => {
           </div>
         </div>
 
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-3">
+        {/* Messages Area - Modificado para ser scrollable con altura máxima */}
+        <div 
+          className="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-3" 
+          style={{ maxHeight: 'calc(100% - 140px)' }} // Espacio reservado para header + footer
+        >
           {messages.map(message => (
             <ChatMessage key={message.id} message={message} />
           ))}
-
+          
           {isTyping && (
             <div className="flex items-center gap-2 text-gray-500 text-sm animate-pulse">
               <div className="flex gap-1">
@@ -99,6 +104,7 @@ const ChatSimulator: React.FC = () => {
               ConectaT Bot está escribiendo...
             </div>
           )}
+          
           <div ref={messagesEndRef} />
         </div>
 
@@ -117,8 +123,8 @@ const ChatSimulator: React.FC = () => {
           </div>
         </div>
 
-        {/* Input Area */}
-        <div className="p-4 bg-white border-t flex items-center gap-3">
+        {/* Input Area - Modificado para tener altura mínima */}
+        <div className="p-4 bg-white border-t flex items-center gap-3" style={{ minHeight: '60px' }}>
           <input
             type="text"
             value={inputText}
@@ -135,7 +141,6 @@ const ChatSimulator: React.FC = () => {
             <Send size={20} />
           </button>
         </div>
-
       </div>
     </div>
   );

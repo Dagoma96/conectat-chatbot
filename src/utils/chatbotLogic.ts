@@ -270,7 +270,7 @@ class ChatbotLogic {
     const analysis = this.analyzeIntent(input);
 
     // Mensaje que se enviará prellenado a WhatsApp cuando toque escalar
-    const presetWA = `Hola, vengo del chat de ConectaT. Necesito hablar con un asesor. Mi consulta: "${userInput}"`;
+    const presetWA = `Hola, requiero soporte`;
 
     // Escalamiento automático si se detecta necesidad
     if (analysis.needsEscalation) {

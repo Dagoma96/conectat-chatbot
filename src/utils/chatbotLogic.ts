@@ -10,11 +10,18 @@ export type ChatState =
   | 'contact_human'
   | 'quote_request';
 
+export interface Button {
+  label: string;
+  url: string;
+  target?: '_blank' | '_self';
+}
+
 export interface Message {
   id: string;
   text: string;
   sender: 'user' | 'bot';
   timestamp: Date;
+  buttons?: Button[];
 }
 
 export interface ChatResponse {
@@ -23,17 +30,63 @@ export interface ChatResponse {
 }
 
 class ChatbotLogic {
+  // ✅ Configura aquí tu número de WhatsApp en formato internacional sin signos (+ ni espacios)
+  // Ej: +57 304 375 6405  -> "573043756405"
+  private whatsappNumber: string = '573043756405';
+
   private generateId(): string {
     return Date.now().toString() + Math.random().toString(36).substr(2, 9);
   }
 
-  private createBotMessage(text: string): Message {
+  private createBotMessage(text: string, buttons?: Button[]): Message {
     return {
       id: this.generateId(),
       text,
       sender: 'bot',
-      timestamp: new Date()
+      timestamp: new Date(),
+      buttons
     };
+  }
+
+  // Construye el link de WhatsApp con mensaje prellenado
+  private buildWhatsAppLink(message?: string): string {
+    const base = `https://wa.me/${this.whatsappNumber}`;
+    if (!message) return base;
+    return `${base}?text=${encodeURIComponent(message)}`;
+  }
+
+  // Botón estándar de WhatsApp
+  private buildWhatsAppButton(presetMessage: string): Button {
+    return {
+      label: '💬 Chatear por WhatsApp',
+      url: this.buildWhatsAppLink(presetMessage),
+      target: '_blank'
+    };
+  }
+
+  // Botón de llamada al mismo número (formato tel:)
+  private buildCallButton(): Button {
+    return {
+      label: '📞 Llamar ahora',
+      url: `tel:+${this.whatsappNumber}`
+    };
+  }
+
+  // Intenta abrir WhatsApp automáticamente y también notifica al padre (si está en iframe)
+  private redirectToWhatsApp(presetMessage: string): void {
+    const url = this.buildWhatsAppLink(presetMessage);
+    try {
+      if (typeof window !== 'undefined') {
+        // Abrir en nueva pestaña
+        try { window.open(url, '_blank'); } catch {}
+        // Notificar al contenedor (por si gestionan la redirección desde fuera)
+        try { window.parent?.postMessage({ type: 'redirect_to_whatsapp', url }, '*'); } catch {}
+        // (Opcional) Si quieres forzar en la misma pestaña, descomenta:
+        // try { window.location.assign(url); } catch {}
+      }
+    } catch {
+      // Silencio: entorno no navegador
+    }
   }
 
   // Análisis contextual inteligente
@@ -71,7 +124,7 @@ class ChatbotLogic {
       warranty: ['garantía', 'garantia', 'cobertura', 'válida', 'tiempo'],
       schedule: ['horario', 'hora', 'cuándo', 'abierto', 'cerrado', 'atención'],
       location: ['dónde', 'ubicación', 'dirección', 'llegar', 'mapa'],
-      human: ['agente', 'humano', 'persona', 'operador', 'hablar con']
+      human: ['asesor', 'agente', 'humano', 'persona', 'operador', 'hablar con']
     };
 
     let bestIntent = 'unknown';
@@ -124,14 +177,14 @@ class ChatbotLogic {
       }
     };
 
-const redirection = redirections[intent as keyof typeof redirections];
-if (redirection) {
-  return {
-    message: redirection.message,
-    newState: redirection.state
-  };
-}
-return null;
+    const redirection = redirections[intent as keyof typeof redirections];
+    if (redirection) {
+      return {
+        message: redirection.message,
+        newState: redirection.state
+      };
+    }
+    return null;
   }
 
   getWelcomeMessage(): Message {
@@ -215,12 +268,22 @@ return null;
     
     // Análisis inteligente de la intención del usuario
     const analysis = this.analyzeIntent(input);
-    
+
+    // Mensaje que se enviará prellenado a WhatsApp cuando toque escalar
+    const presetWA = `Hola, vengo del chat de ConectaT. Necesito hablar con un asesor. Mi consulta: "${userInput}"`;
+
     // Escalamiento automático si se detecta necesidad
     if (analysis.needsEscalation) {
+      // 🔁 Disparar redirección a WhatsApp (auto) + fallback por mensaje
+      this.redirectToWhatsApp(presetWA);
+
       return {
         message: this.createBotMessage(
-          `Entiendo que necesitas asistencia especializada. Te estoy conectando con uno de nuestros agentes humanos que podrá ayudarte mejor con tu consulta.\n\n*Mientras tanto, aquí tienes nuestros datos de contacto directo:*\n\n📞 **Teléfono:** +57 300 123 4567\n📧 **Email:** soporte@conectat.com.co\n📍 **Dirección:** Calle 127 #15-45, Bogotá\n\n*Horarios de atención:*\n📅 Lunes a Viernes: 8:00 AM - 6:00 PM\n📅 Sábados: 9:00 AM - 2:00 PM\n\nUn agente se comunicará contigo en los próximos minutos.`
+          `Entiendo que necesitas asistencia especializada. Te estoy conectando con uno de nuestros agentes humanos que podrá ayudarte mejor con tu consulta.\n\n*Mientras tanto, aquí tienes nuestros datos de contacto directo:*\n\n📞 **Teléfono:** +${this.whatsappNumber}\n📧 **Email:** soporte@conectat.com.co\n📍 **Dirección:** Calle 127 #15-45, Bogotá\n\n*Abriremos WhatsApp automáticamente.*\n👉 Si no se abre, usa este enlace: ${this.buildWhatsAppLink(presetWA)}\n\nUn agente se comunicará contigo en los próximos minutos.`,
+          [
+            this.buildWhatsAppButton(presetWA),
+            this.buildCallButton()
+          ]
         ),
         newState: 'contact_human'
       };
@@ -247,11 +310,18 @@ return null;
       }
     }
 
-    // Escalamiento directo a agente humano
+    // Escalamiento directo a agente humano (petición explícita)
     if (analysis.intent === 'human') {
+      // 🔁 Disparar redirección a WhatsApp (auto) + fallback por mensaje
+      this.redirectToWhatsApp(presetWA);
+
       return {
         message: this.createBotMessage(
-          `Entiendo que necesitas asistencia especializada. Te estoy conectando con uno de nuestros agentes humanos que podrá ayudarte mejor con tu consulta.\n\n*Horarios de atención:*\n📅 Lunes a Viernes: 8:00 AM - 6:00 PM\n📅 Sábados: 9:00 AM - 2:00 PM\n\n📞 **Contacto directo:** +57 300 123 4567\n📧 **Email:** soporte@conectat.com.co\n\nUn agente se comunicará contigo en breve.`
+          `Entiendo que necesitas asistencia especializada. Te estoy conectando con uno de nuestros agentes humanos que podrá ayudarte mejor con tu consulta.\n\n*Horarios de atención:*\n📅 Lunes a Viernes: 8:00 AM - 6:00 PM\n📅 Sábados: 9:00 AM - 2:00 PM\n\n📞 **Contacto directo:** +${this.whatsappNumber}\n📧 **Email:** soporte@conectat.com.co\n\n*Abriremos WhatsApp automáticamente.*\n👉 Si no se abre, usa este enlace: ${this.buildWhatsAppLink(presetWA)}\n\nUn agente se comunicará contigo en breve.`,
+          [
+            this.buildWhatsAppButton(presetWA),
+            this.buildCallButton()
+          ]
         ),
         newState: 'contact_human'
       };
@@ -350,7 +420,10 @@ return null;
     if (analysis.intent === 'sales' || input.includes('precio') || input.includes('costo') || input.includes('cuánto') || input.includes('💰')) {
       return {
         message: this.createBotMessage(
-          `💰 *INFORMACIÓN DE PRECIOS*\n\n*REPARACIONES MÁS COMUNES:*\n📱 Pantalla celular: $90.000 - $350.000\n🔋 Batería celular: $80.000 - $150.000\n💻 Formateo PC: $80.000\n🔧 Mantenimiento PC: $45.000\n\n*SERVICIOS:*\n🏠 Visita a domicilio: $25.000\n⏰ Hora técnica: $45.000\n📞 Soporte remoto: $35.000\n💻 Diagnóstico: GRATUITO\n\n*TODOS LOS PRECIOS INCLUYEN:*\n✅ Mano de obra especializada\n✅ Garantía de 6 meses\n✅ Soporte post-venta\n✅ IVA incluido\n\n*FORMAS DE PAGO:*\n💳 Efectivo, tarjetas, transferencias\n📱 Pago móvil (Nequi, Daviplata)\n💰 Financiación disponible\n\n¿Necesitas cotización para algo específico?`
+          `💰 *INFORMACIÓN DE PRECIOS*\n\n*REPARACIONES MÁS COMUNES:*\n📱 Pantalla celular: $90.000 - $350.000\n🔋 Batería celular: $80.000 - $150.000\n💻 Formateo PC: $80.000\n🔧 Mantenimiento PC: $45.000\n\n*SERVICIOS:*\n🏠 Visita a domicilio: $25.000\n⏰ Hora técnica: $45.000\n📞 Soporte remoto: $35.000\n💻 Diagnóstico: GRATUITO\n\n*TODOS LOS PRECIOS INCLUYEN:*\n✅ Mano de obra especializada\n✅ Garantía de 6 meses\n✅ Soporte post-venta\n✅ IVA incluido\n\n*FORMAS DE PAGO:*\n💳 Efectivo, tarjetas, transferencias\n📱 Pago móvil (Nequi, Daviplata)\n💰 Financiación disponible\n\n¿Necesitas cotización para algo específico?`,
+          [
+            { label: '💬 Cotizar por WhatsApp', url: this.buildWhatsAppLink('Hola, quiero una cotización por WhatsApp.'), target: '_blank' }
+          ]
         ),
         newState: 'quote_request'
       };
@@ -377,7 +450,7 @@ return null;
     if (analysis.intent === 'location' || input.includes('dónde') || input.includes('ubicación') || input.includes('dirección')) {
       return {
         message: this.createBotMessage(
-          `📍 *NUESTRA UBICACIÓN*\n\n**ConectaT - Sede Principal**\n🏢 Carrera 83D #53A-34, Cali\n🏙️ Barrio: Usaquén\n\n*REFERENCIAS:*\n🚇 A 2 cuadras del TransMilenio Calle 127\n🏪 Frente al Centro Comercial Santafé\n🅿️ Parqueadero gratuito disponible\n\n*CÓMO LLEGAR:*\n🚌 TransMilenio: Estación Calle 127\n🚗 Por Autopista Norte: Salida Calle 127\n🚕 Uber/Taxi: "ConectaT Calle 127"\n\n*HORARIOS:*\n📅 Lunes a Viernes: 8:00 AM - 5:00 PM\n📅 Sábados: 9:00 AM - 12:00 PM\n\n📞 **Teléfono:** +57 304 375 6405\n\n¿Necesitas que te envíe la ubicación por Google Maps?`
+          `📍 *NUESTRA UBICACIÓN*\n\n**ConectaT - Sede Principal**\n🏢 Carrera 83D #53A-34, Cali\n🏙️ Barrio: Usaquén\n\n*REFERENCIAS:*\n🚇 A 2 cuadras del TransMilenio Calle 127\n🏪 Frente al Centro Comercial Santafé\n🅿️ Parqueadero gratuito disponible\n\n*CÓMO LLEGAR:*\n🚌 TransMilenio: Estación Calle 127\n🚗 Por Autopista Norte: Salida Calle 127\n🚕 Uber/Taxi: "ConectaT Calle 127"\n\n*HORARIOS:*\n📅 Lunes a Viernes: 8:00 AM - 5:00 PM\n📅 Sábados: 9:00 AM - 12:00 PM\n\n📞 **Teléfono:** +${this.whatsappNumber}\n\n¿Necesitas que te envíe la ubicación por Google Maps?`
         ),
         newState: currentState
       };
